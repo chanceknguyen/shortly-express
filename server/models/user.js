@@ -35,13 +35,15 @@ class Users extends Model {
    */
   create({ username, password }) {
     let salt = utils.createRandom32String();
-
+    console.log('this is the username', username);
+    console.log('this is the password', password);
+    console.log('this is the salt', salt);
     let newUser = {
       username,
       salt,
       password: utils.createHash(password, salt)
     };
-
+    console.log(newUser);
     return super.create.call(this, newUser);
   }
 }
