@@ -181,6 +181,7 @@ describe('', function() {
       };
 
       request(options, function(error, res, body) {
+        debugger;
         if (error) { return done(error); }
         request(options, function(err, response, resBody) {
           if (err) { return done(err); }
@@ -208,7 +209,9 @@ describe('', function() {
     });
   });
 
-  xdescribe('Account Login:', function() {
+  // === The above tests are 1 through 8 ===
+
+  describe('Account Login:', function() {
 
     beforeEach(function(done) {
       var options = {

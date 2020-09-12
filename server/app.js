@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
 const db = require('./db');
+const parseCookies = require('./middleware/cookieParser');
 
 const app = express();
 
@@ -13,8 +14,9 @@ app.set('views', `${__dirname}/views`);
 app.set('view engine', 'ejs');
 app.use(partials());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use((bodyParser.urlencoded({ extended: true })));
 app.use(express.static(path.join(__dirname, '../public')));
+// app.use(parseCookies);
 
 
 
@@ -82,43 +84,35 @@ app.post('/signup', (req, res, next) => {
   console.log(req.body);
   db.query('SELECT * FROM users where username = ?', req.body.username, (err, result) => {
     if (result.length === 0) {
-      console.log('here is a new user', req.body.username);
       models.Users.create({username: req.body.username, password: req.body.username});
-      res.sendStatus(200);
+      res.redirect('/');
     } else {
-      console.log('these are the results', result);
-      console.log('Username exists!');
-      res.header.location = '/signup';
-      res.status(300);
-      res.end();
+      res.redirect('/signup');
     }
   });
+  next();
 });
 
 app.post('/login', (req, res, next) => {
+
   var username = req.body.username;
   db.query('SELECT * FROM users where username = ?', username, (err, result) => {
-    if (err) {
+    var user = result[0];
+    if (user === undefined) {
       console.log('No username found!');
-      res.header.location = '/login';
-      res.status(401);
-      res.end();
+      res.redirect('/login');
     } else {
-      var user = result[0];
       var correctLogin = models.Users.compare(req.body.password, user.password, user.salt);
       if (correctLogin) {
         console.log('Logged In!');
-        res.header.location = '/';
-        res.status(200);
-        res.end();
+        res.redirect('/');
       } else {
         console.log('Bad password!');
-        res.header.location = '/login';
-        res.status(401);
-        res.end();
+        res.redirect('/login');
       }
     }
   });
+  next();
 });
 
 /************************************************************/
@@ -149,6 +143,7 @@ app.get('/:code', (req, res, next) => {
     .catch(() => {
       res.redirect('/');
     });
+  next();
 });
 
 module.exports = app;
