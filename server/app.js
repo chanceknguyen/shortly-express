@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+const db = require('./db');
 
 const app = express();
 
@@ -78,18 +79,46 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 app.post('/signup', (req, res, next) => {
-  debugger;
   console.log(req.body);
-  models.Users.create({username: req.body.username, password: req.body.username});
-  res.sendStatus(200);
+  db.query('SELECT * FROM users where username = ?', req.body.username, (err, result) => {
+    if (result.length === 0) {
+      console.log('here is a new user', req.body.username);
+      models.Users.create({username: req.body.username, password: req.body.username});
+      res.sendStatus(200);
+    } else {
+      console.log('these are the results', result);
+      console.log('Username exists!');
+      res.header.location = '/signup';
+      res.status(300);
+      res.end();
+    }
+  });
 });
 
 app.post('/login', (req, res, next) => {
-  var username = req.body.username; // this is the username person put in
-  //server query at the username to get the real salt and real password
-  // then compare those two real things with the attempted password
-  // models.Users.compare(req.body.password, ${hashedPassword}, ${salt});
-  // res.sendStatus(200);
+  var username = req.body.username;
+  db.query('SELECT * FROM users where username = ?', username, (err, result) => {
+    if (err) {
+      console.log('No username found!');
+      res.header.location = '/login';
+      res.status(401);
+      res.end();
+    } else {
+      var user = result[0];
+      var correctLogin = models.Users.compare(req.body.password, user.password, user.salt);
+      if (correctLogin) {
+        console.log('Logged In!');
+        res.header.location = '/';
+        res.status(200);
+        res.end();
+      } else {
+        console.log('Bad password!');
+        res.header.location = '/login';
+        res.status(401);
+        res.end();
+      }
+    }
+  });
 });
 
 /************************************************************/
