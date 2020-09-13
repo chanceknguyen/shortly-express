@@ -6,7 +6,7 @@ const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
 const db = require('./db');
-const parseCookies = require('./middleware/cookieParser');
+
 
 const app = express();
 
@@ -16,7 +16,8 @@ app.use(partials());
 app.use(bodyParser.json());
 app.use((bodyParser.urlencoded({ extended: true })));
 app.use(express.static(path.join(__dirname, '../public')));
-// app.use(parseCookies);
+app.use(require('./middleware/cookieParser'));
+app.use(Auth.createSession);
 
 
 
@@ -81,16 +82,22 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 app.post('/signup', (req, res, next) => {
-  console.log(req.body);
+  console.log(res);
   db.query('SELECT * FROM users where username = ?', req.body.username, (err, result) => {
     if (result.length === 0) {
       models.Users.create({username: req.body.username, password: req.body.username});
+      // var hash = res.cookies.shortlyid;
+      // db.query('select id from users where username = ?', req.body.username, function(error, results) {
+      //   var userid = results;
+      // });
+      // db.query('UPDATE into sessions set userId = ? WHERE hash = ', [userid, hash], function(error, results) {
+      //   console.log(results);
+      // });
       res.redirect('/');
     } else {
       res.redirect('/signup');
     }
   });
-  next();
 });
 
 app.post('/login', (req, res, next) => {
@@ -112,7 +119,6 @@ app.post('/login', (req, res, next) => {
       }
     }
   });
-  next();
 });
 
 /************************************************************/

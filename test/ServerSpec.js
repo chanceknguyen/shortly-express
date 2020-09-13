@@ -67,7 +67,6 @@ describe('', function() {
         if (err) { return done(err); }
 
         expect(results).to.deep.equal([]);
-        console.log('Results to be [] ', results);
         done();
       });
     });
@@ -181,7 +180,6 @@ describe('', function() {
       };
 
       request(options, function(error, res, body) {
-        debugger;
         if (error) { return done(error); }
         request(options, function(err, response, resBody) {
           if (err) { return done(err); }
@@ -280,7 +278,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Sessions Schema:', function() {
+  describe('Sessions Schema:', function() {
     it('contains a sessions table', function(done) {
       var queryString = 'SELECT * FROM sessions';
       db.query(queryString, function(err, results) {
@@ -328,7 +326,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Express Middleware', function() {
+  describe('Express Middleware', function() {
     var cookieParser = require('../server/middleware/cookieParser.js');
     var createSession = require('../server/middleware/auth.js').createSession;
 
@@ -448,6 +446,7 @@ describe('', function() {
           var userId = results.insertId;
 
           createSession(requestWithoutCookie, response, function() {
+            debugger;
             var hash = requestWithoutCookie.session.hash;
             db.query('UPDATE sessions SET userId = ? WHERE hash = ?', [userId, hash], function(error, result) {
 
